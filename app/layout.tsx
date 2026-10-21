@@ -11,7 +11,7 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
- console.log("hii")
+
 
 export const metadata: Metadata = {
   title: "Create Next App",
