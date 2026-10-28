@@ -1,13 +1,13 @@
 import type { NextAuthOptions } from "next-auth";
 import NextAuth from "next-auth";
-import Credentials from "next-auth/providers/credentials";
+import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/models/User";
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    Credentials({
+    CredentialsProvider({
       id: "credentials",
       name: "Credentials",
       credentials: {
@@ -78,5 +78,4 @@ export const authOptions: NextAuthOptions = {
   },
   secret  : process.env.NEXTAUTH_SECRET
 };
-
 
