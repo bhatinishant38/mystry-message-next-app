@@ -69,11 +69,6 @@ export async function POST(request: Request) {
     }
 
     user.isVerified = true;
-
-    // Prevent reuse of the verification code
-    user.verifyCode = "";
-    user.verifyCodeExpiry = new Date(0);
-
     await user.save();
 
     return Response.json(
