@@ -32,7 +32,7 @@ export async function POST(request : Request){
                 success : true ,
                 message : "Account verified successfully"
             },
-            { status : 500}
+            { status : 200}
         )
       } else if(!isCodeNotExpired){
         return Response.json(

@@ -10,7 +10,6 @@ import axios, { AxiosError } from "axios";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-
 import { toast } from "@/components/ui/toast";
 import { SignUpSchema } from "@/Schemas/signUpSchema";
 import { ApiResponse } from "@/types/ApiResponse";
