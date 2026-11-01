@@ -4,26 +4,57 @@ import VerificationEmail from "@/emails/VerificationEmail";
 import { ApiResponse } from "@/types/ApiResponse";
 
 export async function sendVerificationEmail(
-    email: string,
-    username: string,
-    verifyCode: string
+  email: string,
+  username: string,
+  verifyCode: string
 ): Promise<ApiResponse> {
-    try {
-        const { error } = await resend.emails.send({
-            from: 'onboarding@resend.dev',
-            to: email,
-            subject: 'Verify your account',
-            react: VerificationEmail({ username, otp: verifyCode }),
-        });
+  try {
+    const from = process.env.RESEND_FROM_EMAIL;
 
-        if (error) {
-            console.error("Error in sending verification email", error);
-            return { success: false, message: "Failed to send verification email" };
-        }
+    if (!from) {
+      console.error("RESEND_FROM_EMAIL is missing");
 
-        return { success: true, message: "Verification email sent successfully" };
-    } catch (emailError) {
-        console.error("Error in sending verification email", emailError);
-        return { success: false, message: "Failed to send verification email" };
+      return {
+        success: false,
+        message: "Email sender is not configured.",
+      };
     }
+
+    const { data, error } = await resend.emails.send({
+      from,
+      to: email,
+      subject: "Verify your account",
+      react: VerificationEmail({
+        username,
+        otp: verifyCode,
+      }),
+    });
+
+    if (error) {
+      console.error("Resend API error:", error);
+
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+
+    console.log("Verification email sent:", data?.id);
+
+    return {
+      success: true,
+      message: "Verification email sent successfully",
+    };
+
+  } catch (error) {
+    console.error("Email sending failed:", error);
+
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Unexpected email error",
+    };
+  }
 }
