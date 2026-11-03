@@ -6,7 +6,13 @@ const Dashboard = () => {
       <div>
         <div><div>This is dahboard page</div></div>
       </div>
-      
+      <div>
+        <ul>
+          <li>Profile </li>
+          <li>Home</li>
+          <li>About</li>
+        </ul>
+      </div>
     </div>
   )
 }
