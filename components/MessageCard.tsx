@@ -6,7 +6,6 @@ import {
   CardAction,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -21,9 +20,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Button } from 'react-email'
+import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
-import { Message } from 'react-hook-form'
+import type { Message } from '@/models/User'
 import { toast } from './ui/toast'
 import { ApiResponse } from '@/types/ApiResponse'
 import axios from 'axios'
@@ -34,43 +33,75 @@ type MessageCardProps = {
 }
 
 const MessageCard = ({message ,onMessageDelete}:MessageCardProps) => {
+  const [isDeleting, setIsDeleting] = React.useState(false)
 
   const handleDeleteConfirm = async ()=>{
-    const response = await axios.delete<ApiResponse>(`/api/delete-message/${message._id}`)
-    toast.add({
-        title : response.data.message
-    })
-    onMessageDelete(message._id)
+    setIsDeleting(true)
+    try {
+      const response = await axios.delete<ApiResponse>(`/api/delete-message/${message._id}`)
+      toast.add({
+          title : response.data.message
+      })
+      onMessageDelete(message._id.toString())
+    } catch (error) {
+      const errorMessage = axios.isAxiosError<ApiResponse>(error)
+        ? error.response?.data.message
+        : undefined
+
+      toast.add({
+          title : errorMessage || 'Unable to delete message. Please try again.',
+          type : 'error'
+      })
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   return (
-   
-    <Card>
-        <CardHeader>
-            <CardTitle>Card Title</CardTitle>
+    <Card className='h-full'>
+        <CardHeader className='grid-cols-[1fr_auto]'>
+            <CardTitle className='text-base font-semibold'>Anonymous message</CardTitle>
+            <CardDescription>
+                {new Date(message.createdAt).toLocaleString()}
+            </CardDescription>
+            <CardAction>
             <AlertDialog>
-        <AlertDialogTrigger render={<Button variant="destructive"> <X className='w-5 h-5'/> </Button>} />
+        <AlertDialogTrigger
+          render={
+            <Button
+              variant='destructive'
+              size='icon'
+              aria-label='Delete message'
+              disabled={isDeleting}
+            >
+              <X aria-hidden='true' />
+            </Button>
+          }
+        />
         <AlertDialogContent>
             <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>Delete this message?</AlertDialogTitle>
             <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete your
-                account from our servers.
+                This action cannot be undone. This message will be permanently deleted.
             </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm}>Continue</AlertDialogAction>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+              variant='destructive'
+            >
+              Delete message
+            </AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>
         </AlertDialog>
-            <CardDescription>Card Description</CardDescription>
-            <CardAction>Card Action</CardAction>
+            </CardAction>
         </CardHeader>
-        <CardContent>
-           
+        <CardContent className='whitespace-pre-wrap break-words leading-relaxed'>
+            {message.content}
         </CardContent>
-      
    </Card>
   )
 }
