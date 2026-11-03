@@ -33,28 +33,14 @@ type MessageCardProps = {
 }
 
 const MessageCard = ({message ,onMessageDelete}:MessageCardProps) => {
-  const [isDeleting, setIsDeleting] = React.useState(false)
+  
 
   const handleDeleteConfirm = async ()=>{
-    setIsDeleting(true)
-    try {
-      const response = await axios.delete<ApiResponse>(`/api/delete-message/${message._id}`)
-      toast.add({
-          title : response.data.message
-      })
-      onMessageDelete(message._id.toString())
-    } catch (error) {
-      const errorMessage = axios.isAxiosError<ApiResponse>(error)
-        ? error.response?.data.message
-        : undefined
-
-      toast.add({
-          title : errorMessage || 'Unable to delete message. Please try again.',
-          type : 'error'
-      })
-    } finally {
-      setIsDeleting(false)
-    }
+    const response = axios.delete<ApiResponse>(`/api/delete-message/${message._id}`)
+    toast.add({
+        title : (await response).data.message
+    })
+   
   }
 
   return (
@@ -72,7 +58,7 @@ const MessageCard = ({message ,onMessageDelete}:MessageCardProps) => {
               variant='destructive'
               size='icon'
               aria-label='Delete message'
-              disabled={isDeleting}
+             
             >
               <X aria-hidden='true' />
             </Button>
@@ -89,7 +75,7 @@ const MessageCard = ({message ,onMessageDelete}:MessageCardProps) => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
-              disabled={isDeleting}
+              
               variant='destructive'
             >
               Delete message
