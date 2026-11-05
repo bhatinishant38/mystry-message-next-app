@@ -43,8 +43,12 @@ export const authOptions : NextAuthOptions = {
 
         return {
           id: user._id.toString(),
+          _id: user._id.toString(),
           name: user.username,
           email: user.email,
+          username: user.username,
+          isVerified: user.isVerified,
+          isAcceptingMessages: user.isAcceptingMessage,
         };
       },
     }),
@@ -78,4 +82,3 @@ export const authOptions : NextAuthOptions = {
   },
   secret  : process.env.NEXTAUTH_SECRET
 };
-

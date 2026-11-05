@@ -2,31 +2,23 @@
 
 import MessageCard from '@/components/MessageCard'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Switch } from '@/components/ui/switch'
 import { toast } from '@/components/ui/toast'
-import { Separator, Switch } from '@base-ui/react'
-import { zodResolver } from '@hookform/resolvers/zod'
 import axios, { AxiosError } from 'axios'
-import { Loader2, RefreshCcw } from 'lucide-react'
+import { Link2, Loader2, MessageCircle, RefreshCcw, Sparkles } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import React, { useCallback, useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { AcceptMessageSchema } from '@/Schemas/acceptMessageSchema'
 import type { Message } from '@/models/User'
 import type { ApiResponse } from '@/types/ApiResponse'
 
 const Dashboard = () => {
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [isSwitchLoading, setIsSwitchLoading] = useState(false)
+  const [isSwitchLoading, setIsSwitchLoading] = useState(true)
+  const [acceptMessages, setAcceptMessages] = useState(false)
   const [profileUrl, setProfileUrl] = useState('')
   const { data: session, status } = useSession()
-
-  const { setValue, watch } = useForm<{ acceptMessages: boolean }>({
-    resolver: zodResolver(AcceptMessageSchema),
-    defaultValues: { acceptMessages: false },
-  })
-
-  const acceptMessages = watch('acceptMessages')
 
   const handleDeleteMessage = useCallback((messageId: string) => {
     setMessages((currentMessages) =>
@@ -38,7 +30,7 @@ const Dashboard = () => {
     setIsSwitchLoading(true)
     try {
       const response = await axios.get<ApiResponse>('/api/accept-messages')
-      setValue('acceptMessages', response.data.isAcceptingMessage ?? false)
+      setAcceptMessages(response.data.isAcceptingMessage ?? false)
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse>
       toast.add({
@@ -49,7 +41,7 @@ const Dashboard = () => {
     } finally {
       setIsSwitchLoading(false)
     }
-  }, [setValue])
+  }, [])
 
   const fetchMessages = useCallback(async (refresh = false) => {
     setIsLoading(true)
@@ -92,7 +84,7 @@ const Dashboard = () => {
       const response = await axios.post<ApiResponse>('/api/accept-messages', {
         acceptMessages: checked,
       })
-      setValue('acceptMessages', checked)
+      setAcceptMessages(response.data.isAcceptingMessage ?? checked)
       toast.add({
         title: response.data.message || 'Settings updated',
         description: checked
@@ -127,75 +119,136 @@ const Dashboard = () => {
   }
 
   if (status === 'loading') {
-    return <div className='my-8 flex justify-center'><Loader2 className='h-6 w-6 animate-spin' /></div>
+    return (
+      <div className='flex min-h-[60vh] items-center justify-center'>
+        <Loader2 className='h-7 w-7 animate-spin text-primary' />
+      </div>
+    )
   }
 
   if (!session?.user) {
-    return <div>Please login</div>
+    return (
+      <div className='mx-auto my-16 max-w-xl rounded-2xl border bg-card p-8 text-center shadow-sm'>
+        <h1 className='text-2xl font-semibold'>Sign in to view your dashboard</h1>
+        <p className='mt-2 text-muted-foreground'>Your messages will be waiting here.</p>
+      </div>
+    )
   }
 
   return (
-    <div className='my-8 mx-4 md:mx-8 lg:mx-auto p-6 bg-white'>
-      <h1 className='text-4xl font-bold mb-4'>User Dashboard</h1>
+    <div className='mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8'>
+      <header className='mb-8'>
+        <div className='mb-3 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary'>
+          <Sparkles className='size-4' />
+          Your message space
+        </div>
+        <h1 className='text-3xl font-bold tracking-tight sm:text-4xl'>Dashboard</h1>
+        <p className='mt-2 text-muted-foreground'>
+          Share your link, manage your inbox, and choose when you want to hear from people.
+        </p>
+      </header>
 
-      <div className='mb-4'>
-        <h2 className='text-lg font-semibold mb-2'>Copy Your Unique Link</h2>
-        <div className='flex items-center'>
+      <div className='grid gap-4 md:grid-cols-2'>
+        <Card className='border-border/70 shadow-sm'>
+          <CardHeader>
+            <CardTitle className='flex items-center gap-2'>
+              <Link2 className='size-5 text-primary' />
+              Your unique link
+            </CardTitle>
+            <CardDescription>Share this link to receive anonymous messages.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className='flex flex-col gap-3 sm:flex-row'>
           <input
             type='text'
             value={profileUrl}
             readOnly
             aria-label='Your unique profile link'
-            className='input input-bordered w-full p-2 mr-2'
+                className='min-w-0 flex-1 rounded-lg border bg-muted/40 px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring'
           />
-          <Button onClick={copyToClipboard} disabled={!profileUrl}>
-            Copy
+              <Button onClick={copyToClipboard} disabled={!profileUrl} className='gap-2'>
+                <Link2 className='size-4' />
+                Copy link
           </Button>
         </div>
-      </div>
+          </CardContent>
+        </Card>
 
-      <div className='mb-4 flex items-center'>
-        <Switch.Root
-          className='relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full bg-muted transition-colors data-checked:bg-primary disabled:cursor-not-allowed disabled:opacity-50'
+        <Card className='border-border/70 shadow-sm'>
+          <CardHeader>
+            <CardTitle className='flex items-center gap-2'>
+              <MessageCircle className='size-5 text-primary' />
+              Message settings
+            </CardTitle>
+            <CardDescription>Choose whether people can send you messages.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className='flex items-center justify-between gap-4 rounded-xl border bg-muted/30 p-4'>
+              <div>
+                <p className='font-medium'>Accept messages</p>
+                <p className='mt-1 text-sm text-muted-foreground'>
+                  {isSwitchLoading
+                    ? 'Loading your settings…'
+                    : acceptMessages
+                      ? 'Your link is open to new messages.'
+                      : 'New messages are currently paused.'}
+                </p>
+              </div>
+        <Switch
+          size='default'
           checked={acceptMessages}
           onCheckedChange={handleSwitchChange}
           disabled={isSwitchLoading}
           aria-label='Accept messages'
-        >
-          <Switch.Thumb className='pointer-events-none size-5 translate-x-0.5 rounded-full bg-background shadow-sm transition-transform data-checked:translate-x-5' />
-        </Switch.Root>
-        <span className='ml-2'>
-          Accept Messages: {acceptMessages ? 'On' : 'Off'}
-        </span>
+        />
+            </div>
+          </CardContent>
+        </Card>
       </div>
-      <Separator />
 
-      <Button
-        className='mt-4'
-        onClick={() => fetchMessages(true)}
-        disabled={isLoading}
-        aria-label='Refresh messages'
-      >
-        {isLoading ? (
-          <Loader2 className='h-4 w-4 animate-spin' />
-        ) : (
-          <RefreshCcw className='h-4 w-4' />
-        )}
-      </Button>
+      <section className='mt-10'>
+        <div className='mb-5 flex flex-wrap items-end justify-between gap-4'>
+          <div>
+            <h2 className='text-2xl font-semibold tracking-tight'>Your inbox</h2>
+            <p className='mt-1 text-sm text-muted-foreground'>
+              {messages.length === 1 ? '1 message' : `${messages.length} messages`}
+            </p>
+          </div>
+          <Button
+            variant='outline'
+            onClick={() => fetchMessages(true)}
+            disabled={isLoading}
+            className='gap-2'
+          >
+            <RefreshCcw className={`size-4 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
 
-      <div className='mt-4 grid grid-cols-1 md:grid-cols-2 gap-6'>
         {messages.length > 0 ? (
-          messages.map((message) => (
-            <MessageCard
-              key={String(message._id)}
-              message={message}
-              onMessageDelete={handleDeleteMessage}
-            />
-          ))
+          <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+            {messages.map((message) => (
+              <MessageCard
+                key={String(message._id)}
+                message={message}
+                onMessageDelete={handleDeleteMessage}
+              />
+            ))}
+          </div>
         ) : (
-          <p>No messages to display</p>
+            <Card className='border-dashed bg-muted/20 py-8 text-center shadow-none sm:col-span-2 lg:col-span-3'>
+              <CardContent className='flex flex-col items-center'>
+                <div className='mb-4 rounded-full bg-primary/10 p-3 text-primary'>
+                  <MessageCircle className='size-6' />
+                </div>
+                <h3 className='font-semibold'>Your inbox is quiet</h3>
+                <p className='mt-1 max-w-sm text-sm text-muted-foreground'>
+                  Share your unique link with friends to start receiving anonymous messages.
+                </p>
+              </CardContent>
+            </Card>
         )}
-      </div>
+      </section>
     </div>
   )
 }

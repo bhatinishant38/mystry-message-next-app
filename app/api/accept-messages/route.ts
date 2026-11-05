@@ -19,13 +19,25 @@ export async function POST(request: Request){
     )
     }
 
-    const userId = user._id 
-    const { acceptMessages } = await request.json()
+    const userId = user._id
+    if (!userId) {
+        return Response.json(
+            { success: false, message: "User ID missing from session" },
+            { status: 401 }
+        )
+    }
 
     try {
+       const body = await request.json()
+       if (typeof body.acceptMessages !== "boolean") {
+           return Response.json(
+               { success: false, message: "acceptMessages must be a boolean" },
+               { status: 400 }
+           )
+       }
        const updatedUser = await UserModel.findByIdAndUpdate(
               userId ,
-             {isAcceptingMessage : acceptMessages},
+             {isAcceptingMessage : body.acceptMessages},
              { new : true}
             )
         if (!updatedUser){
@@ -42,6 +54,7 @@ export async function POST(request: Request){
             {
                 success : true,
                 message : "Message acceptance status updated successfully",
+                isAcceptingMessage: updatedUser.isAcceptingMessage,
                 updatedUser
             },
             {
