@@ -61,6 +61,7 @@ export const authOptions : NextAuthOptions = {
       token.isAcceptingMessages = user.isAcceptingMessages;
       token.username = user.username
      }
+     token._id ??= token.sub
      return token
     },
     async session({session , token}) {

@@ -71,10 +71,9 @@ const Dashboard = () => {
 
     fetchMessages()
     fetchAcceptMessage()
-    if (session.user.username) {
-      setProfileUrl(
-        `${window.location.origin}/u/${session.user.username}`,
-      )
+    const username = session.user.username ?? session.user.name
+    if (username) {
+      setProfileUrl(`${window.location.origin}/u/${username}`)
     }
   }, [session, fetchAcceptMessage, fetchMessages])
 
