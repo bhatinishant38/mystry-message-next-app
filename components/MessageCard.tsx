@@ -40,7 +40,7 @@ const MessageCard = ({message ,onMessageDelete}:MessageCardProps) => {
     toast.add({
         title : (await response).data.message
     })
-    onMessageDelete(message._id)  
+    onMessageDelete(String(message._id))
   }
 
   return (

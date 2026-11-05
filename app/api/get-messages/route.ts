@@ -16,20 +16,15 @@ export async function GET(request : Request){
             success : false ,
             message : "Not Authenticated"
         },
-        { status : 401}
+        { status : 404}
     )
     }
 
-    const userId = new mongoose.Types.ObjectId(user._id) 
+    const userId = new mongoose.Types.ObjectId(user._id)
 
     try {
-        const user = await UserModel.aggregate([
-            { $match : {id : userId}},
-            { $unwind : "messages"},
-            { $sort : {"messages.createdAt" : -1}},
-            { $group : {_id : '$_id' , messages : { $push : "$messages"}}}
-        ])
-        if(!user || user.length ===0) {
+        const foundUser = await UserModel.findById(userId).select('message')
+        if (!foundUser) {
             return Response.json(
                 {
                     success : false ,
@@ -40,8 +35,11 @@ export async function GET(request : Request){
         }
          return Response.json(
                 {
-                    success : false ,
-                    messages : user[0].messages
+                    success : true,
+                    messages : [...foundUser.message].sort(
+                        (first, second) =>
+                            second.createdAt.getTime() - first.createdAt.getTime(),
+                    ),
                 },
                 { status : 200}
             )
@@ -51,7 +49,7 @@ export async function GET(request : Request){
         return Response.json(
             {
                 success : false ,
-                message : "An unexpected error occured"
+                message : "An unexpected error occurred"
             },
             { status : 500}
         )

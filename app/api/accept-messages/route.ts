@@ -20,12 +20,12 @@ export async function POST(request: Request){
     }
 
     const userId = user._id 
-    const { acceptmessages} = await request.json()
+    const { acceptMessages } = await request.json()
 
     try {
        const updatedUser = await UserModel.findByIdAndUpdate(
               userId ,
-             {isAcceptingMessage : acceptmessages},
+             {isAcceptingMessage : acceptMessages},
              { new : true}
             )
         if (!updatedUser){
@@ -40,8 +40,8 @@ export async function POST(request: Request){
         }
         return Response.json(
             {
-                success : false ,
-                messages : "Message acceptance status updated successfully",
+                success : true,
+                message : "Message acceptance status updated successfully",
                 updatedUser
             },
             {
@@ -55,7 +55,7 @@ export async function POST(request: Request){
         return Response.json(
             {
             success : false ,
-            messages : "failed to update user status to accept messages"
+            message : "Failed to update user status to accept messages"
         },
         { status : 500}
       )
@@ -93,16 +93,16 @@ export async function GET(request : Request){
             return Response.json(
                     {
                         success : true ,
-                        isAcceptingMessages : foundUser.isAcceptingMessage 
+                        isAcceptingMessage : foundUser.isAcceptingMessage
                     },
-                    { status : 404}
+                        { status : 200}
                 )       
     } catch (error) {
         console.log("Error in getting message accepatnce status")
         return Response.json(
             {
             success : false ,
-            messages : "Error in getting message accepatnce status"
+            message : "Error in getting message acceptance status"
         },
         { status : 500}
       )    
