@@ -1,14 +1,11 @@
-import React from 'react'
+import MessageForm from './MessageForm'
 
-const page = () => {
-  return (
-    <div> mesaage page
+export default async function MessagePage({
+  params,
+}: {
+  params: Promise<{ username: string }>
+}) {
+  const { username } = await params
 
-      <div>
-        <div> this is message page</div>
-      </div>
-    </div>
-  )
+  return <MessageForm username={username} />
 }
-
-export default page
