@@ -33,7 +33,7 @@ export default function MessageForm({ username }: { username: string }) {
       const response = await axios.post<{
         success: boolean
         suggestions: string[]
-      }>('/api/suggest-messages')
+      }>('/api/suggest-messages', {}, { timeout: 65_000 })
       const generatedSuggestions = response.data.suggestions
 
       if (!response.data.success || generatedSuggestions.length !== 3) {

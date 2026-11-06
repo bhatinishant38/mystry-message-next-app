@@ -23,6 +23,7 @@ export async function POST() {
         maxItems: 3,
       }),
       maxOutputTokens: 400,
+      abortSignal: AbortSignal.timeout(60_000),
       prompt:
         'Write exactly three short, friendly, open-ended prompts for an anonymous message page. Avoid personal or sensitive topics. The output must be an array of exactly three plain strings.',
     })
@@ -71,14 +72,23 @@ export async function POST() {
         ? 'Gemini rejected the API key. Check that GOOGLE_GENERATIVE_AI_API_KEY is valid and the Generative Language API is enabled.'
         : statusCode === 429
           ? 'Gemini API quota or rate limit reached. Please try again later.'
-          : `Gemini request failed (${errorName}${statusCode ? `, status ${statusCode}` : ''}): ${errorMessage}`
+          : errorName === 'TimeoutError' || errorName === 'AbortError'
+            ? 'Gemini took too long to respond. Please try again.'
+            : `Gemini request failed (${errorName}${statusCode ? `, status ${statusCode}` : ''}): ${errorMessage}`
 
     return Response.json(
       {
         success: false,
         message,
       },
-      { status: statusCode === 429 ? 429 : 502 },
+      {
+        status:
+          errorName === 'TimeoutError' || errorName === 'AbortError'
+            ? 504
+            : statusCode === 429
+              ? 429
+              : 502,
+      },
     )
   }
 }
