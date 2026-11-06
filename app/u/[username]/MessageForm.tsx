@@ -33,7 +33,9 @@ export default function MessageForm({ username }: { username: string }) {
       const response = await axios.post<{
         success: boolean
         suggestions: string[]
-      }>('/api/suggest-messages', {}, { timeout: 65_000 })
+        source?: 'gemini' | 'fallback'
+        message?: string
+      }>('/api/suggest-messages', {}, { timeout: 12_000 })
       const generatedSuggestions = response.data.suggestions
 
       if (!response.data.success || generatedSuggestions.length !== 3) {
@@ -41,6 +43,13 @@ export default function MessageForm({ username }: { username: string }) {
       }
 
       setSuggestions(generatedSuggestions)
+      if (response.data.source === 'fallback' && response.data.message) {
+        toast.add({
+          title: 'Quick suggestions',
+          description: response.data.message,
+          type: 'warning',
+        })
+      }
     } catch (error) {
       const description = axios.isAxiosError(error)
         ? error.response?.data?.message ||
