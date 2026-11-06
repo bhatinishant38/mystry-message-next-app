@@ -30,25 +30,29 @@ export default function MessageForm({ username }: { username: string }) {
     setSuggestions([])
 
     try {
-      const response = await axios.post<string>('/api/suggest-messages')
-      const generatedSuggestions = response.data
-        .split('||')
-        .map((suggestion) => suggestion.replace(/^[\s"'`•\d.)-]+|[\s"'`]+$/g, '').trim())
-        .filter(Boolean)
-        .slice(0, 3)
+      const response = await axios.post<{
+        success: boolean
+        suggestions: string[]
+      }>('/api/suggest-messages')
+      const generatedSuggestions = response.data.suggestions
 
-      if (generatedSuggestions.length !== 3) {
+      if (!response.data.success || generatedSuggestions.length !== 3) {
         throw new Error('The suggestion service returned an unexpected response.')
       }
 
       setSuggestions(generatedSuggestions)
     } catch (error) {
       const description = axios.isAxiosError(error)
-        ? error.response?.data?.message || 'Please try again in a moment.'
+        ? error.response?.data?.message ||
+          'Please try again in a moment. Check that the Gemini API key is configured.'
         : error instanceof Error
           ? error.message
           : 'Please try again in a moment.'
-      toast.add({ title: 'Could not generate suggestions', description })
+      toast.add({
+        title: 'Could not generate suggestions',
+        description,
+        type: 'error',
+      })
     } finally {
       setIsSuggesting(false)
     }
