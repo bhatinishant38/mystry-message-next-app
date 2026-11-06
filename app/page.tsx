@@ -200,7 +200,7 @@ const Home = () => {
       </div>
 
       <footer className='border-t bg-muted/20 px-5 py-6 text-center text-sm text-muted-foreground'>
-        © {new Date().getFullYear()} Mystery Message. Made for meaningful conversations.
+        © 2026 Mystery Message. Made for meaningful conversations.
       </footer>
     </main>
   )
